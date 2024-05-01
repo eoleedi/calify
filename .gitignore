@@ -1,5 +1,11 @@
-
+# Input, Output, and Test Data
 timetable.pdf
 test-csv.csv
 /testdata
 /output
+
+# VS Code
+.vscode/
+
+# Mac OS
+.DS_Store
