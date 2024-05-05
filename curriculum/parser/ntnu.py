@@ -6,21 +6,20 @@ from curriculum.course import Course
 
 
 class SimpleTimeTableParser:
-
-    def dataframe_to_course(self, data: pd.DataFrame) -> List[Course]:
+    def dataframe_to_courses(self, data: pd.DataFrame) -> List[Course]:
         courses = []
         for i in range(len(data)):
             course = Course(
-                data.iloc[i]["課程中文名稱"],
-                data.iloc[i]["上課時間"],
-                data.iloc[i]["上課教室"],
-                data.iloc[i]["星期"],
+                name = data.iloc[i]["課程中文名稱"],
+                time = data.iloc[i]["上課時間"],
+                location = data.iloc[i]["上課教室"],
+                day = data.iloc[i]["星期"],
             )
             courses.append(course)
         return courses
 
-    def table_to_dataframe(self, table: List[List[str | None]] | None):
+    def table_to_dataframe(self, table: List[List[str | None]] | None) -> pd.DataFrame:
         return pd.DataFrame(table[1:], columns=table[0])
 
-    def table_to_course(self, table: List[List[str | None]] | None) -> List[Course]:
-        return self.dataframe_to_course(self.table_to_dataframe(table))
+    def table_to_courses(self, table: List[List[str | None]] | None) -> List[Course]:
+        return self.dataframe_to_courses(self.table_to_dataframe(table))
