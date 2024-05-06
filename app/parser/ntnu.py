@@ -52,6 +52,4 @@ class Semester:
         }
 
     def get_date(self, semester: str) -> tuple[datetime.date, datetime.date]:
-        return self._semester_to_date.get(
-            semester, (datetime.date(2023, 9, 4), datetime.date(2023, 12, 24))
-        )
+        return self._semester_to_date[semester]
