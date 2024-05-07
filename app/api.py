@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.post("/pdftocalendar", response_class=Response)
 async def pdf_to_calendar(pdf: UploadFile, parser_string: str, semester: str):
-    # 開啟並讀取 PDF 檔 
+    # 開啟並讀取 PDF 檔
     file = BytesIO(await pdf.read())
     table = read_pdf(file)
 
@@ -22,7 +22,7 @@ async def pdf_to_calendar(pdf: UploadFile, parser_string: str, semester: str):
         return HTMLResponse(content="Parser not found", status_code=400)
     else:
         parser = parser()
-    
+
     # 建立 Calendar 物件
     cal = Calendar()
 
@@ -31,10 +31,12 @@ async def pdf_to_calendar(pdf: UploadFile, parser_string: str, semester: str):
 
     # 取得學期開始與結束日期
     try:
-        start_date, end_date = ntnu.Semester().get_date(semester)
+        start_date, end_date = ntnu.Semester().get_date(
+            semester
+        )  # TODO: Let user choose which school's semester
     except KeyError:
         return HTMLResponse(content="Semester not found", status_code=400)
-    
+
     # 將每堂課程的事件加入 Calendar 物件
     for course in courses:
         cal.add_component(course.to_ical_events(start_date, end_date))
