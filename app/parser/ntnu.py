@@ -46,8 +46,8 @@ class SimpleTimeTableParser:
 class Semester:
     def __init__(self):
         self._semester_to_date = {
-            "1121": (datetime.date(2023, 9, 4), datetime.date(2023, 12, 24)),
-            "1122": (datetime.date(2024, 2, 19), datetime.date(2024, 6, 9)),
+            "112-1": (datetime.date(2023, 9, 4), datetime.date(2023, 12, 24)),
+            "112-2": (datetime.date(2024, 2, 19), datetime.date(2024, 6, 9)),
         }
 
     def get_date(self, semester: str) -> tuple[datetime.date, datetime.date]:
