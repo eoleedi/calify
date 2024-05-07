@@ -20,7 +20,6 @@ class SimpleTimeTableParser:
     def dataframe_to_courses(self, data: pd.DataFrame) -> List[Course]:
         courses = []
         for i in range(len(data)):
-            print(data.iloc[i]["上課時間"].split("-"))
             course = Course(
                 name=data.iloc[i]["課程中文名稱"].replace("\n", ""),
                 start_time=datetime.datetime.strptime(
