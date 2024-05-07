@@ -47,9 +47,10 @@ class Course:
             raise ValueError("Start date must be before end date")
         weekdaydelta = datetime.timedelta(
             days=(
-                self.weekday - start_date.weekday()
-                if self.weekday > start_date.weekday()
-                else self.weekday - start_date.weekday() + 7
+                self.weekday - (start_date.weekday() + 1)
+                if self.weekday >= (start_date.weekday() + 1)
+                else self.weekday - (start_date.weekday() + 1) + 7
+                # date.weekday() returns 0 for Monday, 1 for Tuesday, etc.
             )
         )
         if start_date + weekdaydelta > end_date:
@@ -62,7 +63,8 @@ class Course:
             datetime.datetime.combine(start_date + weekdaydelta, self.start_time),
         )
         event.add(
-            "dtend", datetime.datetime.combine(start_date + weekdaydelta, self.end_time)
+            "dtend",
+            datetime.datetime.combine(start_date + weekdaydelta, self.end_time),
         )
         event.add("rrule", {"FREQ": "WEEKLY", "UNTIL": end_date})
 
