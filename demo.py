@@ -8,7 +8,7 @@ from app.api import pdf_to_calendar
 async def main(input_path: str, output_path: str):
     """Main function to run the demo."""
     async with aiofiles.open(input_path, "rb") as f:
-        response = await pdf_to_calendar(f, "ntnuSimpleTimeTableParser", "112-2")
+        response = await pdf_to_calendar(f, "ntnu", "SimpleTimeTable", "112-2")
         with open(output_path, "wb") as f:
             f.write(response.body)
 

@@ -3,25 +3,26 @@ from icalendar import Calendar
 from fastapi import UploadFile, APIRouter
 from fastapi.responses import HTMLResponse, Response
 from .utils import read_pdf
-from .parser import ntnu
+from .parser.factory import ParserFactory, SemesterFactory
 
 
-allParser = {"ntnuSimpleTimeTableParser": ntnu.SimpleTimeTableParser}
 router = APIRouter()
+
+parserFactory = ParserFactory()
+semesterFactory = SemesterFactory()
 
 
 @router.post("/pdftocalendar", response_class=Response)
-async def pdf_to_calendar(pdf: UploadFile, parser_string: str, semester: str):
+async def pdf_to_calendar(pdf: UploadFile, school: str, pdfType: str, semester: str):
     # 開啟並讀取 PDF 檔
     file = BytesIO(await pdf.read())
     table = read_pdf(file)
 
     # 透過 parser_string 取得對應的 parser
-    parser = allParser.get(parser_string)
-    if parser is None:
+    try:
+        parser = parserFactory.get_parser(school, pdfType)
+    except KeyError:
         return HTMLResponse(content="Parser not found", status_code=400)
-    else:
-        parser = parser()
 
     # 建立 Calendar 物件
     cal = Calendar()
@@ -31,9 +32,7 @@ async def pdf_to_calendar(pdf: UploadFile, parser_string: str, semester: str):
 
     # 取得學期開始與結束日期
     try:
-        start_date, end_date = ntnu.Semester().get_date(
-            semester
-        )  # TODO: Let user choose which school's semester
+        start_date, end_date = semesterFactory.get_semester(school).get_date(semester)
     except KeyError:
         return HTMLResponse(content="Semester not found", status_code=400)
 
