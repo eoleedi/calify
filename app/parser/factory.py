@@ -1,4 +1,4 @@
-from app.parser import ntnu
+from . import ntnu
 
 
 class ParserFactory:
