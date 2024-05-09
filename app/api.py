@@ -22,7 +22,10 @@ async def pdf_to_calendar(pdf: UploadFile, school: str, pdfType: str, semester: 
     try:
         parser = parserFactory.get_parser(school, pdfType)
     except KeyError:
-        return HTMLResponse(content="Parser not found", status_code=400)
+        return HTMLResponse(
+            content="Parser not found (either school or pdfType is incorrect)",
+            status_code=400,
+        )
 
     # 建立 Calendar 物件
     cal = Calendar()
@@ -34,7 +37,7 @@ async def pdf_to_calendar(pdf: UploadFile, school: str, pdfType: str, semester: 
     try:
         start_date, end_date = semesterFactory.get_semester(school).get_date(semester)
     except KeyError:
-        return HTMLResponse(content="Semester not found", status_code=400)
+        return HTMLResponse(content="Semester not found (e.g. 112-2)", status_code=400)
 
     # 將每堂課程的事件加入 Calendar 物件
     for course in courses:
