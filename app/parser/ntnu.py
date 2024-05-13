@@ -34,6 +34,17 @@ class SimpleTimeTableParser:
                 weekday=zh_day_to_int.get(data.iloc[i]["星期"], 0),
             )
             courses.append(course)
+        
+        for course in courses:
+            for b_course in courses:
+                if course != b_course and course.name == b_course.name and course.weekday == b_course.weekday and course.location == b_course.location:
+                    
+                    datetime1 = datetime.datetime.combine(datetime.datetime.today(), course.end_time)
+                    datetime2 = datetime.datetime.combine(datetime.datetime.today(), b_course.start_time)
+                    if (datetime2 - datetime1).total_seconds() <= 20*60:
+                        course.start_time = min(course.start_time, b_course.start_time)
+                        course.end_time = max(course.end_time, b_course.end_time)
+                        courses.remove(b_course)
         return courses
 
     def table_to_dataframe(self, table: List[List[str | None]] | None) -> pd.DataFrame:
