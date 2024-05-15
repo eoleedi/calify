@@ -1,0 +1,16 @@
+# Input, Output, and Test Data
+timetable.pdf
+calendar.ics
+test-csv.csv
+/testdata
+/output
+
+# VS Code
+.vscode/
+
+# Mac OS
+.DS_Store
+
+# Python
+*.pyc
+__pycache__
