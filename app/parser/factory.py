@@ -6,6 +6,7 @@ class ParserFactory:
         self.parsers = {
             "ntnu": {
                 "SimpleTimeTable": ntnu.SimpleTimeTableParser(),
+                "FullTimeTable": ntnu.FullTimeTableParser(),
             }
         }
 
