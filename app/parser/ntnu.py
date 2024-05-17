@@ -75,7 +75,7 @@ class FullTimeTableParser:
 
                 # 讀取課程名稱、地點
                 information = [x.strip() for x in item.split("\n")]
-                name = "".join(information[:-1])
+                name = " ".join(information[:-1])
                 location = information[-1]
 
                 # 讀取星期幾
