@@ -3,6 +3,7 @@
 from typing import List
 import datetime
 import pandas as pd
+import re
 from app.course import Course
 from app.utils import combine_continuous_sessions
 
@@ -14,6 +15,15 @@ zh_day_to_int = {
     "五": 5,
     "六": 6,
     "日": 7,
+}
+en_day_to_int = {
+    "MON": 1,
+    "TUE": 2,
+    "WED": 3,
+    "THU": 4,
+    "FRI": 5,
+    "SAT": 6,
+    "SUN": 7,
 }
 
 
@@ -69,7 +79,7 @@ class FullTimeTableParser:
                 location = information[-1]
 
                 # 讀取星期幾
-                zh_weekday = column_name[2]  # e.g. "星期一(MON)" -> "一"
+                en_weekday = self._extract_day(column_name)
 
                 # 新增課程
                 courses.append(
@@ -84,7 +94,7 @@ class FullTimeTableParser:
                             "%H:%M",
                         ).time(),
                         location=location,
-                        weekday=zh_day_to_int.get(zh_weekday, 0),
+                        weekday=en_day_to_int.get(en_weekday, 0),
                     )
                 )
 
@@ -95,6 +105,10 @@ class FullTimeTableParser:
 
     def table_to_courses(self, table: List[List[str | None]] | None) -> List[Course]:
         return self.dataframe_to_courses(self.table_to_dataframe(table))
+
+    def _extract_day(self, value):
+        match = re.search(r"\b(MON|TUE|WED|THU|FRI|SAT|SUN)\b", value)
+        return match.group(0) if match else None
 
 
 class Semester:
