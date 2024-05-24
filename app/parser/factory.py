@@ -1,11 +1,17 @@
-from . import ntnu
+from . import ntnu, tmuh
 
 
 class ParserFactory:
     def __init__(self):
         self.parsers = {
+            # 台師大
             "ntnu": {
                 "SimpleTimeTable": ntnu.SimpleTimeTableParser(),
+                "FullTimeTable": ntnu.FullTimeTableParser(),
+            }, 
+            # 北醫
+            "tmuh": {
+                "FullTimeTable": tmuh.FullTimeTableParser(),
             }
         }
 
@@ -20,6 +26,7 @@ class SemesterFactory:
     def __init__(self):
         self.semesters = {
             "ntnu": ntnu.Semester(),
+            "tmuh": tmuh.Semester(),
         }
 
     def get_semester(self, school: str):
