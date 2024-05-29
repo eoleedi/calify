@@ -8,7 +8,7 @@ from app.api import pdf_to_calendar
 async def main(input_path: str, output_path: str):
     """Main function to run the demo."""
     async with aiofiles.open(input_path, "rb") as f:
-        response = await pdf_to_calendar(f, "ntnu", "SimpleTimeTable", "112-2")
+        response = await pdf_to_calendar(f, "tmuh", "FullTimeTable", "112-2")
         if response.status_code != 200:
             print(response.body.decode())
             return
@@ -17,4 +17,4 @@ async def main(input_path: str, output_path: str):
 
 
 if __name__ == "__main__":
-    asyncio.run(main("timetable.pdf", "calendar.ics"))
+    asyncio.run(main("testdata/北醫.pdf", "calendar.ics"))
