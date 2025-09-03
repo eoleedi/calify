@@ -118,6 +118,8 @@ class Semester:
             "112-2": (datetime.date(2024, 2, 19), datetime.date(2024, 6, 9)),
             "113-1": (datetime.date(2024, 9, 2), datetime.date(2024, 12, 20)),
             "113-2": (datetime.date(2025, 2, 17), datetime.date(2025, 6, 6)),
+            "114-1": (datetime.date(2025, 9, 1), datetime.date(2025, 12, 21)),
+            "114-2": (datetime.date(2026, 2, 23), datetime.date(2026, 6, 14)),
         }
 
     def get_date(self, semester: str) -> tuple[datetime.date, datetime.date]:
