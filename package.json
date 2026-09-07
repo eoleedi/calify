@@ -1,0 +1,20 @@
+{
+  "name": "calify",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": { "node": ">=20.19.0" },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "dependencies": { "pdfjs-dist": "5.4.149" },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "jsdom": "^26.1.0",
+    "vite": "^7.1.4",
+    "vitest": "^3.2.4"
+  }
+}

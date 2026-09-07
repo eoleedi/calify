@@ -14,3 +14,11 @@ test-csv.csv
 # Python
 *.pyc
 __pycache__
+
+# Node and Vite
+node_modules/
+dist/
+coverage/
+
+# OpenCode
+.opencode/
