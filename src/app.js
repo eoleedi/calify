@@ -14,10 +14,12 @@ export function createApp(root, dependencies = {}) {
   let courses = [];
   let calendar = "";
   let busy = false;
+  let version = 0;
+  let destroyed = false;
   const listeners = [];
 
   root.innerHTML = `<div class="page-shell">
-    <header class="site-header"><a class="wordmark" href="/" aria-label="Calify home">Calify<span>.</span></a><div class="locale-switch" aria-label="Language"><button type="button" data-locale="zh" class="is-active">中文</button><button type="button" data-locale="en">EN</button></div></header>
+    <header class="site-header"><a class="wordmark" href="/" aria-label="Calify home">Calify<span>.</span></a><div class="locale-switch" aria-label="Language"><button type="button" data-locale="zh" class="is-active" aria-pressed="true">中文</button><button type="button" data-locale="en" aria-pressed="false">EN</button></div></header>
     <div class="layout">
       <section class="intro" aria-labelledby="hero-title"><p class="kicker" data-copy="hero.kicker"></p><h1 id="hero-title" data-copy="hero.title"></h1><p class="hero-body" data-copy="hero.body"></p><p class="privacy" data-copy="hero.privacy"></p></section>
       <section class="workbench" aria-labelledby="form-title"><div class="section-heading"><p class="step-mark">01</p><h2 id="form-title" data-copy="form.title"></h2></div>
@@ -38,39 +40,61 @@ export function createApp(root, dependencies = {}) {
     semester.innerHTML = config.semesters.map((item) => option(item.id, item.id)).join("");
   }
   function clearResult() { courses = []; calendar = ""; $(".preview").hidden = true; $(".error").hidden = true; }
-  function resetFile() { file.value = ""; clearResult(); $(".status").textContent = translate(locale, "status.ready"); }
+  function invalidate() { version += 1; busy = false; clearResult(); }
+  function resetFile() { file.value = ""; invalidate(); $(".status").textContent = translate(locale, "status.ready"); }
   function renderResult() {
-    const list = $(".course-list"); list.innerHTML = courses.map((course) => `<li><div><strong>${course.name}</strong><span>${translate(locale, "preview.location", { location: course.location || "—" })}</span></div><time>${translate(locale, `weekday.${course.weekday}`)} · ${course.startTime}–${course.endTime}</time></li>`).join("");
-    $(".count").textContent = locale === "en" ? translate(locale, "preview.count", { count: courses.length }) : translate(locale, "preview.count", { count: courses.length });
+    const list = $(".course-list");
+    list.replaceChildren();
+    courses.forEach((course) => {
+      const item = document.createElement("li");
+      const details = document.createElement("div");
+      const name = document.createElement("strong");
+      const location = document.createElement("span");
+      const time = document.createElement("time");
+      name.textContent = course.name;
+      location.textContent = translate(locale, "preview.location", { location: course.location || "—" });
+      time.textContent = `${translate(locale, `weekday.${course.weekday}`)} · ${course.startTime}–${course.endTime}`;
+      details.append(name, location);
+      item.append(details, time);
+      list.append(item);
+    });
+    $(".count").textContent = translate(locale, "preview.count", { count: courses.length });
     $(".preview").hidden = false;
   }
-  function error(code) { $(".error").textContent = translate(locale, `error.${code}`) || translate(locale, "error.conversion-failed"); $(".error").hidden = false; }
+  function showError(code) { $(".error").textContent = translate(locale, `error.${code}`) || translate(locale, "error.conversion-failed"); $(".error").hidden = false; }
   async function handleFile(selected) {
+    const request = ++version;
+    const current = () => !destroyed && request === version;
     clearResult();
-    if (!selected) { error("file-required"); return; }
-    if (selected.type !== "application/pdf" && !selected.name.toLowerCase().endsWith(".pdf")) { error("file-type"); return; }
+    if (!selected) { showError("file-required"); return; }
+    if (selected.type !== "application/pdf" && !selected.name.toLowerCase().endsWith(".pdf")) { file.value = ""; showError("file-type"); return; }
     busy = true; $(".status").textContent = translate(locale, "status.processing");
     try {
       const items = await deps.extractFirstPage(selected);
+      if (!current()) return;
       courses = deps.parseTimetable(items, school.value, format.value);
+      if (!current()) return;
       if (!courses?.length) throw new Error("courses-empty");
       const selectedSemester = getSemester(school.value, semester.value);
       calendar = deps.generateCalendar(courses, selectedSemester);
+      if (!current()) return;
       renderResult();
       $(".status").textContent = translate(locale, "preview.count", { count: courses.length });
     } catch (cause) {
-      error(["pdf-unreadable", "pdf-no-text", "layout-unsupported", "courses-empty"].includes(cause.message) ? cause.message : "conversion-failed");
-    } finally { busy = false; }
+      if (current()) showError(["pdf-unreadable", "pdf-no-text", "layout-unsupported", "courses-empty"].includes(cause.message) ? cause.message : "conversion-failed");
+    } finally { if (current()) busy = false; }
   }
   function on(selector, event, handler) { const node = $(selector); node.addEventListener(event, handler); listeners.push(() => node.removeEventListener(event, handler)); }
 
+  document.documentElement.lang = "zh-Hant";
   school.innerHTML = Object.entries(SCHOOLS).map(([id, config]) => option(id, config.name[locale])).join(""); populate(); copy(); $(".status").textContent = translate(locale, "status.ready");
-  on("[data-locale='zh']", "click", () => { locale = "zh"; copy(); populate(); if (courses.length) renderResult(); });
-  on("[data-locale='en']", "click", () => { locale = "en"; copy(); populate(); if (courses.length) renderResult(); });
-  on("#school", "change", () => { populate(); clearResult(); }); on("#format", "change", clearResult); on("#semester", "change", clearResult); on("#file", "change", (event) => handleFile(event.target.files?.[0]));
+  function setLocale(nextLocale) { locale = nextLocale; document.documentElement.lang = locale === "zh" ? "zh-Hant" : "en"; root.querySelectorAll("[data-locale]").forEach((button) => { const active = button.dataset.locale === locale; button.classList.toggle("is-active", active); button.setAttribute("aria-pressed", String(active)); }); copy(); populate(); if (courses.length) renderResult(); }
+  on("[data-locale='zh']", "click", () => setLocale("zh"));
+  on("[data-locale='en']", "click", () => setLocale("en"));
+  on("#school", "change", () => { populate(); invalidate(); }); on("#format", "change", invalidate); on("#semester", "change", invalidate); on("#file", "change", (event) => handleFile(event.target.files?.[0]));
   on(".upload-zone", "keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); file.click(); } });
   on(".upload-zone", "click", (event) => { if (event.target !== file) file.click(); });
   on(".upload-zone", "dragover", (event) => { event.preventDefault(); zone.classList.add("is-dragging"); }); on(".upload-zone", "dragleave", () => zone.classList.remove("is-dragging")); on(".upload-zone", "drop", (event) => { event.preventDefault(); zone.classList.remove("is-dragging"); handleFile(event.dataTransfer.files?.[0]); });
   on(".download", "click", () => { if (!busy && calendar) deps.downloadCalendar(calendar, "calify-calendar.ics"); }); on(".reset", "click", resetFile);
-  return { destroy() { listeners.splice(0).forEach((remove) => remove()); root.replaceChildren(); } };
+  return { destroy() { destroyed = true; version += 1; listeners.splice(0).forEach((remove) => remove()); root.replaceChildren(); } };
 }
