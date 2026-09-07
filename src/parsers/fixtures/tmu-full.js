@@ -13,3 +13,20 @@ export const tmuFullItems = [
   { text: "09:10\n第二節\n10:00", x: 110, y: 620 },
   { text: "PHY101\n生理學\n醫綜 3101", x: 390, y: 620 },
 ];
+
+export const tmuFullWithExtraHeader = [
+  ...tmuFullItems.slice(0, 2),
+  { text: "備註", x: 335, y: 720 },
+  ...tmuFullItems.slice(2),
+];
+
+export const tmuFullWithMissingWeekday = tmuFullItems.filter((item) => item.text !== "日");
+
+export const tmuFullWithDuplicateWeekday = tmuFullItems.map((item) =>
+  item.text === "日" ? { ...item, text: "一" } : item,
+);
+
+export const tmuFullNumericItems = tmuFullItems.map((item) => {
+  const weekday = ["一", "二", "三", "四", "五", "六", "日"].indexOf(item.text);
+  return weekday === -1 ? item : { ...item, text: String(weekday + 1) };
+});

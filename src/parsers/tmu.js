@@ -4,6 +4,15 @@ import { mergeContinuousSessions, normalizeCourse } from "../courses.js";
 const TIME_HEADERS = new Set(["上課時間", "課程時間", "時間"]);
 const PERIOD_HEADERS = new Set(["節次", "節"]);
 const TIME_VALUE = /(?:[01]\d|2[0-3]):[0-5]\d/g;
+const WEEKDAY_LABELS = new Map([
+  ["1", 1], ["一", 1], ["星期一", 1], ["週一", 1], ["周一", 1], ["MON", 1],
+  ["2", 2], ["二", 2], ["星期二", 2], ["週二", 2], ["周二", 2], ["TUE", 2],
+  ["3", 3], ["三", 3], ["星期三", 3], ["週三", 3], ["周三", 3], ["WED", 3],
+  ["4", 4], ["四", 4], ["星期四", 4], ["週四", 4], ["周四", 4], ["THU", 4],
+  ["5", 5], ["五", 5], ["星期五", 5], ["週五", 5], ["周五", 5], ["FRI", 5],
+  ["6", 6], ["六", 6], ["星期六", 6], ["週六", 6], ["周六", 6], ["SAT", 6],
+  ["7", 7], ["日", 7], ["星期日", 7], ["週日", 7], ["周日", 7], ["SUN", 7],
+]);
 
 function findHeader(rows) {
   return rows.findIndex((row) => {
@@ -16,6 +25,10 @@ function parseTime(value) {
   const times = [...value.matchAll(TIME_VALUE)].map((match) => match[0]);
   if (times.length < 2) return null;
   return { startTime: times[0], endTime: times.at(-1) };
+}
+
+function parseWeekdayLabel(value) {
+  return WEEKDAY_LABELS.get(value.trim().toUpperCase()) ?? null;
 }
 
 function columnTolerance(anchors) {
@@ -37,13 +50,18 @@ export function parseTmuFull(items) {
   const header = rows[headerIndex];
   const timeHeader = header.find((item) => TIME_HEADERS.has(item.text.trim()));
   const periodHeader = header.find((item) => PERIOD_HEADERS.has(item.text.trim()));
-  const dayHeaders = header
+  const weekdayHeaders = header
     .filter((item) => item !== timeHeader && item !== periodHeader)
-    .sort((a, b) => a.x - b.x);
-  if (dayHeaders.length < 7) throw new Error("layout-unsupported");
+    .map((item) => ({ item, weekday: parseWeekdayLabel(item.text) }))
+    .filter(({ weekday }) => weekday !== null);
+  if (weekdayHeaders.length !== 7 || new Set(weekdayHeaders.map(({ weekday }) => weekday)).size !== 7) {
+    throw new Error("layout-unsupported");
+  }
 
-  const dayAnchors = dayHeaders.slice(0, 7).map((item, index) => [item.x, index + 1]);
-  const anchors = [timeHeader.x, periodHeader.x, ...dayAnchors.map(([x]) => x)];
+  const dayColumns = weekdayHeaders
+    .map(({ item, weekday }) => [item.x, weekday])
+    .sort((a, b) => a.x - b.x);
+  const anchors = [timeHeader.x, periodHeader.x, ...dayColumns.map(([x]) => x)];
   const tolerance = columnTolerance(anchors);
   const courses = [];
 
@@ -56,9 +74,9 @@ export function parseTmuFull(items) {
       const column = assignColumns([item], anchors, tolerance);
       return { item, index: column.findIndex((value) => value !== "") };
     });
-    for (let dayIndex = 0; dayIndex < dayAnchors.length; dayIndex += 1) {
+    for (let dayIndex = 0; dayIndex < dayColumns.length; dayIndex += 1) {
       const cell = parseCourseCell(assigned.filter(({ index }) => index === dayIndex + 2).map(({ item }) => item));
-      if (cell) courses.push(normalizeCourse({ ...cell, weekday: dayIndex + 1, ...time }));
+      if (cell) courses.push(normalizeCourse({ ...cell, weekday: dayColumns[dayIndex][1], ...time }));
     }
   }
 
