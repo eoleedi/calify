@@ -56,8 +56,8 @@ export function parseNtnuSimple(items) {
 
 function findFullHeader(rows) {
   return rows.findIndex((row) => {
-    const values = row.map((item) => item.text.toUpperCase());
-    return [...EN_WEEKDAYS.keys()].every((day) => values.some((value) => value.includes(day)));
+    const values = row.map((item) => item.text.trim().toUpperCase());
+    return values[0] === "節次" && [...EN_WEEKDAYS.keys()].every((day) => values.includes(day));
   });
 }
 
@@ -74,7 +74,7 @@ export function parseNtnuFull(items) {
 
   const header = rows[headerIndex];
   const dayAnchors = [...EN_WEEKDAYS.keys()].map((day) => {
-    const item = header.find((value) => value.text.toUpperCase().includes(day));
+    const item = header.find((value) => value.text.trim().toUpperCase() === day);
     return [item.x, EN_WEEKDAYS.get(day)];
   });
   const anchors = [header[0].x, ...dayAnchors.map(([x]) => x)];
@@ -88,16 +88,7 @@ export function parseNtnuFull(items) {
   for (let rowIndex = headerIndex + 1; rowIndex < rows.length; rowIndex += 1) {
     const row = rows[rowIndex];
     if (row.some((item) => item.text.startsWith("@無節次或密集課程"))) break;
-    const timeRow = timeRows.reduce((nearest, candidate) => {
-      if (!nearest) return candidate;
-      const candidateDistance = Math.abs(candidate.index - rowIndex);
-      const nearestDistance = Math.abs(nearest.index - rowIndex);
-      if (candidateDistance < nearestDistance) return candidate;
-      if (candidateDistance === nearestDistance && candidate.index < rowIndex && nearest.index > rowIndex) {
-        return candidate;
-      }
-      return nearest;
-    }, null);
+    const timeRow = timeRows.filter((candidate) => candidate.index <= rowIndex).at(-1);
     if (!timeRow) continue;
 
     for (const item of row) {
