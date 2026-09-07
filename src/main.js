@@ -1,5 +1,4 @@
-import "./pdf/extract.js";
+import "./styles.css";
+import { createApp } from "./app.js";
 
-const app = document.querySelector("#app");
-
-app.replaceChildren();
+createApp(document.querySelector("#app"));
