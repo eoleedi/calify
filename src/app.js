@@ -5,6 +5,7 @@ import { translate } from "./i18n.js";
 
 const defaultExtractFirstPage = (...args) => import("./pdf/extract.js").then(({ extractFirstPage }) => extractFirstPage(...args));
 const defaults = { extractFirstPage: defaultExtractFirstPage, parseTimetable: defaultParseTimetable, generateCalendar, downloadCalendar: defaultDownloadCalendar };
+const homeHref = import.meta.env.BASE_URL;
 
 function option(value, label) { return `<option value="${value}">${label}</option>`; }
 
@@ -19,7 +20,7 @@ export function createApp(root, dependencies = {}) {
   const listeners = [];
 
   root.innerHTML = `<div class="page-shell">
-    <header class="site-header"><a class="wordmark" href="/" aria-label="Calify home">Calify<span>.</span></a><div class="locale-switch" aria-label="Language"><button type="button" data-locale="zh" class="is-active" aria-pressed="true">中文</button><button type="button" data-locale="en" aria-pressed="false">EN</button></div></header>
+    <header class="site-header"><a class="wordmark" href="${homeHref}" aria-label="Calify home">Calify<span>.</span></a><div class="locale-switch" aria-label="Language"><button type="button" data-locale="zh" class="is-active" aria-pressed="true">中文</button><button type="button" data-locale="en" aria-pressed="false">EN</button></div></header>
     <div class="layout">
       <section class="intro" aria-labelledby="hero-title"><p class="kicker" data-copy="hero.kicker"></p><h1 id="hero-title" data-copy="hero.title"></h1><p class="hero-body" data-copy="hero.body"></p><p class="privacy" data-copy="hero.privacy"></p></section>
       <section class="workbench" aria-labelledby="form-title"><div class="section-heading"><p class="step-mark">01</p><h2 id="form-title" data-copy="form.title"></h2></div>

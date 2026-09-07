@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { generateCalendar } from "./calendar.js";
+import { describe, expect, it, vi } from "vitest";
+import { downloadCalendar, generateCalendar } from "./calendar.js";
 
 const semester = { id: "115-1", startDate: "2026-09-07", endDate: "2026-12-27" };
 
@@ -93,5 +93,34 @@ describe("generateCalendar", () => {
       expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
     }
     expect(ics).toContain("\r\n ");
+  });
+});
+
+describe("downloadCalendar", () => {
+  it("downloads a UTF-8 calendar and cleans up the temporary anchor", async () => {
+    const createObjectURL = vi.fn().mockReturnValue("blob:calify");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
+    const anchor = document.createElement("a");
+    const click = vi.spyOn(anchor, "click").mockImplementation(() => {});
+    vi.spyOn(document, "createElement").mockReturnValue(anchor);
+
+    downloadCalendar("行事曆\r\n", "schedule.ics");
+
+    const blob = createObjectURL.mock.calls[0][0];
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.type).toBe("text/calendar;charset=utf-8");
+    const contents = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsText(blob);
+    });
+    expect(contents).toBe("行事曆\r\n");
+    expect(anchor.download).toBe("schedule.ics");
+    expect(anchor.href).toBe("blob:calify");
+    expect(click).toHaveBeenCalledOnce();
+    expect(document.body.contains(anchor)).toBe(false);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:calify");
   });
 });
