@@ -16,6 +16,15 @@ describe("conversion interface", () => {
     expect(getByRole(document.body, "button", { name: "中文" }).getAttribute("aria-pressed")).toBe("false");
   });
 
+  it("shows an accessible link to the project repository", () => {
+    createApp(document.querySelector("#app"));
+    const link = getByRole(document.body, "link", { name: "View Calify on GitHub" });
+    expect(link.getAttribute("href")).toBe("https://github.com/eoleedi/calify");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noreferrer");
+    expect(link.querySelector("svg")).not.toBeNull();
+  });
+
   it("parses a PDF, previews courses, and enables download", async () => {
     const extract = vi.fn().mockResolvedValue([{ text: "fixture", x: 0, y: 0, width: 1, height: 1 }]);
     const parse = vi.fn().mockReturnValue([course]);

@@ -19,6 +19,10 @@ button { cursor: pointer; }
 .site-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--ink); padding-bottom: 17px; }
 .wordmark { color: var(--ink); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.04em; text-decoration: none; }
 .wordmark span { color: var(--cobalt); }
+.header-tools { display: flex; align-items: center; gap: 10px; }
+.repository-link { display: grid; place-items: center; width: 44px; height: 44px; color: var(--ink); border: 1px solid transparent; border-radius: 50%; transition: color 180ms ease, border-color 180ms ease, background 180ms ease; }
+.repository-link:hover { color: var(--cobalt); border-color: var(--rule); background: var(--paper-deep); }
+.repository-link svg { width: 19px; height: 19px; fill: currentColor; }
 .locale-switch { display: flex; gap: 3px; }
 .locale-switch button { border: 0; background: transparent; color: var(--ink); padding: 8px 12px; min-width: 56px; }
 .locale-switch button.is-active, .locale-switch button:hover { color: var(--cobalt); text-decoration: underline; text-underline-offset: 4px; }
