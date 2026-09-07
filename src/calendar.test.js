@@ -38,4 +38,60 @@ describe("generateCalendar", () => {
     const uids = [...ics.matchAll(/^UID:(.+)$/gm)].map((match) => match[1].trim());
     expect(new Set(uids).size).toBe(2);
   });
+
+  it("includes a stable RFC 5545 DTSTAMP", () => {
+    const ics = generateCalendar([{
+      name: "A",
+      location: "1",
+      weekday: 1,
+      startTime: "08:00",
+      endTime: "09:00",
+    }], semester);
+    expect(ics).toContain("DTSTAMP:19700101T000000Z");
+    expect(generateCalendar([{
+      name: "A",
+      location: "1",
+      weekday: 1,
+      startTime: "08:00",
+      endTime: "09:00",
+    }], semester)).toBe(ics);
+  });
+
+  it("disambiguates duplicate courses with stable unique UIDs", () => {
+    const ics = generateCalendar([
+      { name: "A", location: "1", weekday: 1, startTime: "08:00", endTime: "09:00" },
+      { name: "A", location: "1", weekday: 1, startTime: "08:00", endTime: "09:00" },
+    ], semester);
+    const uids = [...ics.matchAll(/^UID:(.+)$/gm)].map((match) => match[1].trim());
+    expect(new Set(uids).size).toBe(2);
+    expect(generateCalendar([
+      { name: "A", location: "1", weekday: 1, startTime: "08:00", endTime: "09:00" },
+      { name: "A", location: "1", weekday: 1, startTime: "08:00", endTime: "09:00" },
+    ], semester)).toBe(ics);
+  });
+
+  it("escapes standalone CR and CRLF as RFC text newlines", () => {
+    const ics = generateCalendar([{
+      name: "line\rone\r\nline\ntwo",
+      location: "room",
+      weekday: 1,
+      startTime: "08:00",
+      endTime: "09:00",
+    }], semester);
+    expect(ics).toContain("SUMMARY:line\\none\\nline\\ntwo");
+  });
+
+  it("folds long UTF-8 content lines at 75 octets", () => {
+    const ics = generateCalendar([{
+      name: "課程".repeat(30),
+      location: "教室",
+      weekday: 1,
+      startTime: "08:00",
+      endTime: "09:00",
+    }], semester);
+    for (const line of ics.split("\r\n").filter(Boolean)) {
+      expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
+    }
+    expect(ics).toContain("\r\n ");
+  });
 });
